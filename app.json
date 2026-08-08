@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "THE GRIM TEAM",
+    "slug": "grimteam-calendar",
+    "scheme": [
+      "grimteam",
+      "vk54697161",
+      "vk54697162"
+    ],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ru.thegrimteam.calendar",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "ru.thegrimteam.calendar",
+      "adaptiveIcon": {
+        "backgroundColor": "#191c13",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#191c13"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#6b7c3f"
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "681a1430-e39b-40d8-b4a2-2adb880bef22"
+      }
+    }
+  }
+}
