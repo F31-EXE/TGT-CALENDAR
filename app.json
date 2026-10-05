@@ -43,7 +43,8 @@
         {
           "color": "#6b7c3f"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
