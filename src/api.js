@@ -15,6 +15,46 @@ export async function reportMarket(item) {
   });
 }
 
+// Жалоба на отзыв — в ту же коллекцию reports, админ видит её на сайте.
+export async function reportReview(review) {
+  const user = await getUser();
+  const reporter = user ? user.id : ('anon' + Math.random().toString(36).slice(2, 8));
+  const title = ((review.author || 'Боец') + ': ' + (review.text || '★' + (review.stars || ''))).slice(0, 120);
+  return setDoc('reports', 'rv_' + review.id + '_' + reporter, {
+    reviewId: review.id,
+    title,
+    reporterId: reporter,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+// Автор отзыва: поле vkId (сайт и новые версии приложения) или суффикс id
+// документа «{subjectKey}_{userId}».
+export function reviewAuthorId(r, subjectKey) {
+  if (r.vkId) return String(r.vkId);
+  const prefix = subjectKey + '_';
+  return String(r.id || '').startsWith(prefix) ? r.id.slice(prefix.length) : '';
+}
+// Продавец объявления в формате id пользователя («vk123»).
+export function marketAuthorId(m) {
+  const digits = String(m.vkId || '').match(/\d+/);
+  return digits ? 'vk' + digits[0] : '';
+}
+
+// Удаление аккаунта и всех данных пользователя на сервере (Cloud Function
+// deleteAccount). proof — подтверждение личности: свежий токен ВК или Apple.
+export async function deleteAccountRemote(userId, proof) {
+  const res = await fetch(SITE_ORIGIN + '/api/delete-account', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, ...proof }),
+  });
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
+  return data;
+}
+
 // ── Игры ──
 export async function loadGames() {
   const games = await getCollection('games');
@@ -225,6 +265,7 @@ export function reviewStats(reviews) {
 export async function submitReview(subjectKey, user, stars, text) {
   return setDoc('reviews', `${subjectKey}_${user.id}`, {
     gameId: subjectKey,
+    vkId: user.id,
     author: user.name,
     text: text || '',
     stars,

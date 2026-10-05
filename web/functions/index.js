@@ -1109,3 +1109,88 @@ exports.sendPendingGamePushes = onSchedule(
     }
   }
 );
+
+// ════════════════════════════════════════════════════════════════════════
+//  УДАЛЕНИЕ АККАУНТА (требование App Store). Мобильное приложение шлёт
+//  POST /api/delete-account { userId, provider, ... } с подтверждением
+//  личности: свежий токен VK ID или identityToken Sign in with Apple.
+//  Стираем отметки, отзывы, оценки, объявления и жалобы пользователя.
+// ════════════════════════════════════════════════════════════════════════
+const crypto = require('crypto');
+const VKID_CLIENT_IDS = ['54697161', '54697162']; // приложения VK ID (Android, iOS)
+const APPLE_BUNDLE_ID = 'ru.thegrimteam.calendar';
+
+async function verifyVk(userId, vkToken, vkClientId) {
+  if (!/^vk\d+$/.test(userId) || !vkToken || !VKID_CLIENT_IDS.includes(String(vkClientId))) return false;
+  const body = new URLSearchParams({ client_id: String(vkClientId), access_token: vkToken });
+  const res = await fetch('https://id.vk.com/oauth2/user_info', { method: 'POST', body });
+  const json = await res.json().catch(() => ({}));
+  const id = json && json.user && json.user.user_id;
+  return !!id && 'vk' + String(id) === userId;
+}
+
+function b64urlJson(part) {
+  return JSON.parse(Buffer.from(part, 'base64url').toString('utf8'));
+}
+async function verifyApple(userId, token) {
+  if (!/^apple[A-Za-z0-9]+$/.test(userId) || typeof token !== 'string') return false;
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+  const header = b64urlJson(parts[0]);
+  const payload = b64urlJson(parts[1]);
+  if (header.alg !== 'RS256') return false;
+  const keys = await (await fetch('https://appleid.apple.com/auth/keys')).json();
+  const jwk = (keys.keys || []).find(k => k.kid === header.kid);
+  if (!jwk) return false;
+  const ok = crypto.verify('RSA-SHA256', Buffer.from(parts[0] + '.' + parts[1]),
+    crypto.createPublicKey({ key: jwk, format: 'jwk' }), Buffer.from(parts[2], 'base64url'));
+  if (!ok) return false;
+  if (payload.iss !== 'https://appleid.apple.com' || payload.aud !== APPLE_BUNDLE_ID) return false;
+  if (!payload.exp || payload.exp * 1000 < Date.now()) return false;
+  return 'apple' + String(payload.sub || '').replace(/[^A-Za-z0-9]/g, '') === userId;
+}
+
+// Все документы пользователя. id отметок/отзывов/оценок = «{объект}_{userId}»,
+// userId без «_», поэтому суффикс однозначен.
+async function userDocRefs(userId) {
+  const suffix = '_' + userId;
+  const refs = [];
+  for (const col of ['rsvps', 'reviews', 'ratings']) {
+    const snap = await dbf.collection(col).get();
+    snap.docs.forEach(d => {
+      const v = d.data() || {};
+      if (d.id.endsWith(suffix) || v.vkId === userId) refs.push(d.ref);
+    });
+  }
+  for (const [col, field] of [['market', 'vkId'], ['reports', 'reporterId']]) {
+    const snap = await dbf.collection(col).where(field, '==', userId).get();
+    snap.docs.forEach(d => refs.push(d.ref));
+  }
+  return refs;
+}
+
+exports.deleteAccount = onRequest({ region: 'us-central1', memory: '256MiB' }, async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  if (req.method !== 'POST') { res.status(405).json({ ok: false, error: 'method' }); return; }
+  try {
+    const { userId, provider, vkToken, vkClientId, appleToken } = req.body || {};
+    const uid = String(userId || '');
+    let verified = false;
+    if (provider === 'vk') verified = await verifyVk(uid, vkToken, vkClientId);
+    else if (provider === 'apple') verified = await verifyApple(uid, appleToken);
+    // Гостевой профиль (имя без входа) подтвердить нечем: id случайный и
+    // знает его только устройство. Данные гостя — только отметки и отзывы.
+    else if (provider === 'guest') verified = /^g[a-z0-9]{4,12}$/.test(uid);
+    if (!verified) { res.status(403).json({ ok: false, error: 'verify' }); return; }
+
+    const refs = await userDocRefs(uid);
+    const writer = dbf.bulkWriter();
+    refs.forEach(r => writer.delete(r));
+    await writer.close();
+    console.log('deleteAccount:', provider, 'docs', refs.length);
+    res.json({ ok: true, deleted: refs.length });
+  } catch (e) {
+    console.error('deleteAccount error', e);
+    res.status(500).json({ ok: false, error: 'server' });
+  }
+});

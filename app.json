@@ -19,7 +19,8 @@
       "bundleIdentifier": "ru.thegrimteam.calendar",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "ru.thegrimteam.calendar",
@@ -44,7 +45,8 @@
           "color": "#6b7c3f"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

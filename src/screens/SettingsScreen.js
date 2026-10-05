@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { C, F } from '../theme';
 import { getNewGamePref, setNewGameNotify, getMarketPref, setMarketNotify, getBlogPref, setBlogNotify } from '../notify';
 import { cacheCount, clearCache } from '../firestore';
+import { blockedCount, clearBlocks, subscribeBlocks } from '../blocks';
 
 export default function SettingsScreen() {
   const [newGames, setNewGames] = useState(true);
@@ -12,6 +13,8 @@ export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
   const [cacheN, setCacheN] = useState(null);
   const [clearing, setClearing] = useState(false);
+  const [blockedN, setBlockedN] = useState(blockedCount());
+  useEffect(() => subscribeBlocks(() => setBlockedN(blockedCount())), []);
 
   useEffect(() => {
     getNewGamePref().then(setNewGames);
@@ -106,6 +109,19 @@ export default function SettingsScreen() {
           ? <ActivityIndicator size="small" color={C.oliveLt} />
           : <Ionicons name="trash-outline" size={20} color={C.danger} />}
       </Pressable>
+
+      {blockedN > 0 && (
+        <Pressable style={[styles.row, { marginTop: 10 }]} onPress={() => Alert.alert(
+          'Показать скрытых?', 'Отзывы и объявления скрытых пользователей снова будут видны.',
+          [{ text: 'Отмена', style: 'cancel' }, { text: 'Показать', onPress: clearBlocks }]
+        )}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.label}>Скрытые пользователи</Text>
+            <Text style={styles.hint}>Скрыто: {blockedN}. Нажмите, чтобы снова показывать их отзывы и объявления.</Text>
+          </View>
+          <Ionicons name="eye-outline" size={20} color={C.oliveLt} />
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

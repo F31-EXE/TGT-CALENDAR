@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, Pressable, StyleSheet, Linking, Dimensions, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C, F, marketCatName } from '../theme';
-import { priceLabel, parsePhotos, marketWriteLink, reportMarket } from '../api';
+import { priceLabel, parsePhotos, marketWriteLink, reportMarket, marketAuthorId } from '../api';
+import { blockUser } from '../blocks';
 import { Badge } from '../ui';
 import { recordFlag, requestAchievementCheck } from '../achievements';
 import { isFav, toggleFav, subscribeFavs } from '../favorites';
 
 const W = Dimensions.get('window').width;
 
-export default function MarketDetailScreen({ route }) {
+export default function MarketDetailScreen({ route, navigation }) {
   const { item: m } = route.params;
   const photos = parsePhotos(m);
   const link = marketWriteLink(m);
@@ -40,6 +41,18 @@ export default function MarketDetailScreen({ route }) {
           try { await reportMarket(m); setReported(true); Alert.alert('Спасибо', 'Жалоба отправлена.'); }
           catch (e) { Alert.alert('Ошибка', 'Не удалось отправить. Проверьте интернет.'); }
         } },
+      ]
+    );
+  };
+
+  const sellerId = marketAuthorId(m);
+  const onBlockSeller = () => {
+    Alert.alert(
+      'Скрыть продавца?',
+      'Объявления ' + (m.authorName || 'этого продавца') + ' больше не будут показываться на этом устройстве.',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Скрыть', style: 'destructive', onPress: async () => { await blockUser(sellerId); navigation.goBack(); } },
       ]
     );
   };
@@ -95,6 +108,12 @@ export default function MarketDetailScreen({ route }) {
           <Ionicons name={reported ? 'checkmark-circle' : 'flag-outline'} size={14} color={C.textDim} />
           <Text style={styles.reportText}>{reported ? 'Жалоба отправлена' : 'Пожаловаться на объявление'}</Text>
         </Pressable>
+        {!!sellerId && (
+          <Pressable style={[styles.reportRow, { marginTop: 0 }]} onPress={onBlockSeller}>
+            <Ionicons name="eye-off-outline" size={14} color={C.textDim} />
+            <Text style={styles.reportText}>Скрыть объявления продавца</Text>
+          </Pressable>
+        )}
       </View>
     </ScrollView>
   );

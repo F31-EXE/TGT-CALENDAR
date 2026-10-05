@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C, F } from '../theme';
-import { loadRefReviews, reviewsForSubject, reviewStats, submitReview } from '../api';
+import { loadRefReviews, reviewsForSubject, reviewStats, submitReview, reportReview, reviewAuthorId } from '../api';
+import { isBlocked, blockUser, subscribeBlocks } from '../blocks';
 import { getUser, setUserName } from '../identity';
 import { requestAchievementCheck } from '../achievements';
 import NameModal from './NameModal';
@@ -31,6 +32,8 @@ export default function ReviewsBlock({ subjectKey, onStatsChange }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [nameModal, setNameModal] = useState(false);
+  const [, bump] = useState(0);
+  useEffect(() => subscribeBlocks(() => bump(v => v + 1)), []);
 
   const refresh = useCallback(async () => {
     try {
@@ -48,6 +51,7 @@ export default function ReviewsBlock({ subjectKey, onStatsChange }) {
     return () => { alive = false; };
   }, [refresh]);
 
+  const visible = (reviews || []).filter(r => !isBlocked(reviewAuthorId(r, subjectKey)));
   const stats = reviewStats(reviews || []);
   const mine = user && reviews ? reviews.find(r => r.id === `${subjectKey}_${user.id}`) : null;
 
@@ -69,6 +73,20 @@ export default function ReviewsBlock({ subjectKey, onStatsChange }) {
     if (!pick) { Alert.alert('Поставьте оценку', 'Выберите от 1 до 5 звёзд.'); return; }
     if (!user) { setNameModal(true); return; }
     doSubmit(user);
+  };
+
+  // Модерация (требование App Store к пользовательскому контенту):
+  // пожаловаться на отзыв или скрыть все отзывы автора на этом устройстве.
+  const onReviewMenu = (r) => {
+    const authorId = reviewAuthorId(r, subjectKey);
+    Alert.alert(r.author || 'Отзыв', 'Что сделать с этим отзывом?', [
+      { text: 'Пожаловаться', onPress: async () => {
+        try { await reportReview(r); Alert.alert('Спасибо', 'Жалоба отправлена, модератор проверит отзыв.'); }
+        catch (e) { Alert.alert('Ошибка', 'Не удалось отправить. Проверьте интернет.'); }
+      } },
+      ...(authorId ? [{ text: 'Скрыть отзывы автора', style: 'destructive', onPress: () => blockUser(authorId) }] : []),
+      { text: 'Отмена', style: 'cancel' },
+    ]);
   };
 
   const onNameSubmit = async (name) => {
@@ -116,14 +134,19 @@ export default function ReviewsBlock({ subjectKey, onStatsChange }) {
       {/* Список отзывов */}
       {reviews === null ? (
         <ActivityIndicator size="small" color={C.oliveLt} style={{ marginTop: 14 }} />
-      ) : reviews.length === 0 ? (
+      ) : visible.length === 0 ? (
         <Text style={styles.empty}>Отзывов ещё нет. Будьте первым!</Text>
       ) : (
-        reviews.map(r => (
+        visible.map(r => (
           <View key={r.id} style={styles.item}>
             <View style={styles.itemHead}>
               <Text style={styles.author}>{r.author || 'Боец'}</Text>
               <Stars value={r.stars || 0} />
+              {r !== mine && (
+                <Pressable hitSlop={10} onPress={() => onReviewMenu(r)} style={styles.menu}>
+                  <Ionicons name="ellipsis-horizontal" size={16} color={C.textDim} />
+                </Pressable>
+              )}
             </View>
             {!!r.text && <Text style={styles.itemText}>{r.text}</Text>}
             <Text style={styles.itemDate}>{fmtDate(r.createdAt)}</Text>
@@ -156,6 +179,7 @@ const styles = StyleSheet.create({
   item: { backgroundColor: C.surface, borderRadius: 10, borderWidth: 1, borderColor: C.border, padding: 12, marginTop: 10 },
   itemHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   author: { color: C.sand, fontSize: 14, fontFamily: F.h, textTransform: 'uppercase', flex: 1, marginRight: 8 },
+  menu: { marginLeft: 10 },
   itemText: { color: C.text, fontSize: 14, fontFamily: F.mono, lineHeight: 20, marginTop: 8 },
   itemDate: { color: C.textDim, fontSize: 11, fontFamily: F.mono, marginTop: 8 },
 });

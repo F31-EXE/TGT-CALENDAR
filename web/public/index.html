@@ -2818,6 +2818,9 @@
       <button class="btn btn-outline" onclick="openRolesModal()" style="margin-left:8px">
         <i class="fas fa-crown"></i> Тарифы
       </button>
+      <button class="btn btn-outline" onclick="openReviewReports()" style="margin-left:8px">
+        <i class="fas fa-flag"></i> Жалобы на отзывы
+      </button>
       <button class="btn btn-outline" onclick="logout()" style="margin-left: 8px;">
         <i class="fas fa-sign-out-alt"></i> Выйти
       </button>
@@ -3331,6 +3334,16 @@
     </div>
   </div>
 
+
+  <div class="modal" id="reviewReportsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-flag"></i> Жалобы на отзывы</h3>
+        <button class="close-btn" onclick="closeReviewReports()">&times;</button>
+      </div>
+      <div id="reviewReportsList"></div>
+    </div>
+  </div>
 
   <!-- Скрытая модалка входа админа -->
   <div class="modal" id="adminLoginModal">
@@ -5834,6 +5847,54 @@ function formatGameDate(game) {
         });
         showToast('Жалоба отправлена. Спасибо!', 'success');
       } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
+    };
+
+    // ── Жалобы на отзывы (из мобильного приложения): reports с полем reviewId ──
+    window.openReviewReports = async function() {
+      if (!isAdmin) { showToast('Только для админа', 'error'); return; }
+      document.getElementById('reviewReportsModal').classList.add('active');
+      await renderReviewReports();
+    };
+    window.closeReviewReports = function() { document.getElementById('reviewReportsModal').classList.remove('active'); };
+    async function renderReviewReports() {
+      const el = document.getElementById('reviewReportsList'); if (!el) return;
+      el.innerHTML = '<p style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--text-dim)">Загрузка...</p>';
+      try {
+        await loadReports();
+        const snap = await db.collection('reviews').get();
+        const reviews = {};
+        snap.docs.forEach(d => { reviews[d.id] = { ...d.data(), id: d.id }; });
+        const byReview = {};
+        marketReports.filter(r => r.reviewId).forEach(r => { (byReview[r.reviewId] = byReview[r.reviewId] || []).push(r); });
+        const ids = Object.keys(byReview);
+        if (!ids.length) { el.innerHTML = '<p style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--text-dim)">Жалоб нет</p>'; return; }
+        el.innerHTML = ids.map(id => {
+          const rv = reviews[id];
+          const n = byReview[id].length;
+          const body = rv
+            ? `<b>${escapeHtml(rv.author || 'Боец')}</b> · ${'★'.repeat(rv.stars || 0)}<br>${escapeHtml(rv.text || '')}`
+            : `<i>Отзыв уже удалён</i> · ${escapeHtml(byReview[id][0].title || '')}`;
+          return `<div class="review-item"><div class="review-text">${body}</div>
+            <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+              <span class="market-flag" style="position:static"><i class="fas fa-flag"></i> ${n}</span>
+              ${rv ? `<button class="btn btn-danger btn-sm" onclick="deleteReportedReview('${escapeHtml(id)}')"><i class="fas fa-trash"></i> Удалить отзыв</button>` : ''}
+              <button class="btn btn-outline btn-sm" onclick="dismissReviewReports('${escapeHtml(id)}')">Снять жалобы</button>
+            </div></div>`;
+        }).join('');
+      } catch (e) { el.innerHTML = '<p style="color:var(--danger);font-size:12px">Ошибка загрузки</p>'; }
+    }
+    window.deleteReportedReview = async function(id) {
+      if (!isAdmin || !(await uiConfirm('Удалить отзыв?'))) return;
+      try { await db.collection('reviews').doc(id).delete(); await dismissReviewReports(id); }
+      catch (e) { showToast('Ошибка', 'error'); }
+    };
+    window.dismissReviewReports = async function(id) {
+      if (!isAdmin) return;
+      try {
+        for (const r of marketReports.filter(x => x.reviewId === id)) await db.collection('reports').doc(r.id).delete();
+        showToast('Готово', 'success');
+        await renderReviewReports();
+      } catch (e) { showToast('Ошибка', 'error'); }
     };
 
     window.clearMarketReports = async function(id) {

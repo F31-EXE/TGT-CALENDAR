@@ -52,6 +52,23 @@ export async function setVkUser(p) {
   return user;
 }
 export function isVkUser(u) { return !!(u && u.vk); }
+
+// Профиль Sign in with Apple. id — «apple<sub без точек>»: только буквы и
+// цифры, чтобы суффикс «_<id>» в id документов был однозначным.
+export async function setAppleUser(p) {
+  const existing = await getUser();
+  const user = {
+    id: 'apple' + String(p.sub).replace(/[^A-Za-z0-9]/g, ''),
+    apple: String(p.sub),
+    name: (p.name || (existing && existing.name) || 'Боец').slice(0, 60),
+    avatar: '',
+  };
+  cached = user;
+  try { await AsyncStorage.setItem(KEY, JSON.stringify(user)); } catch (e) {}
+  return user;
+}
+export function isAppleUser(u) { return !!(u && u.apple); }
+export function isLinked(u) { return isVkUser(u) || isAppleUser(u); }
 export async function logout() {
   cached = null;
   try { await AsyncStorage.removeItem(KEY); } catch (e) {}

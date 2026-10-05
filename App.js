@@ -35,6 +35,7 @@ import WelcomeModal from './src/components/WelcomeModal';
 import LoginPromptModal from './src/components/LoginPromptModal';
 import { recordDay } from './src/achievements';
 import { loadFavs } from './src/favorites';
+import { loadBlocks } from './src/blocks';
 
 const navTheme = {
   ...DarkTheme,
@@ -150,6 +151,7 @@ export default function App() {
     registerPushToken();
     recordDay(); // отметка «заходил сегодня» для ачивки «Старожил»
     loadFavs();  // подтягиваем избранное барахолки
+    loadBlocks(); // скрытые пользователи (отзывы/барахолка)
     // Приложение открыли тапом по пушу из выгруженного состояния
     Notifications.getLastNotificationResponseAsync().then(resp => {
       if (resp && !responded.current) { responded.current = true; openGameFromNotification(resp); }

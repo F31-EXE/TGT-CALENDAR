@@ -65,12 +65,15 @@ service cloud.firestore {
                             && request.resource.data.targetId is string;
       allow delete: if isAdmin();
     }
-    // Жалобы на объявления (модерация). Один документ на жалобщика-объявление,
-    // id = "{marketId}_{reporterId}". Читает и снимает админ.
+    // Жалобы на объявления и отзывы (модерация). Один документ на
+    // жалобщика-объект: id = "{marketId}_{reporterId}" или
+    // "rv_{reviewId}_{reporterId}". Читает и снимает админ.
     match /reports/{id} {
       allow read, delete: if isAdmin();
-      allow create, update: if request.resource.data.marketId is string
-                            && request.resource.data.title is string;
+      allow create, update: if request.resource.data.title is string
+                            && request.resource.data.title.size() <= 200
+                            && (request.resource.data.marketId is string
+                                || request.resource.data.reviewId is string);
     }
     // Барахолка: привязка к ВК, лимит 3/мес контролируется на клиенте.
     // Менять и удалять объявление может автор (на клиенте) или админ;
