@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Админы сайта — uid из Firebase Auth (Console → Authentication → Users → User UID).
+    // Cloud Functions пишут через admin SDK и правила не проходят.
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.uid in ['GNOeP3JfmmPstOlZe82ekxUiI3w1'];
+    }
+
+    // Контент, которым управляет только админ.
+    match /games/{gameId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Справочные разделы: команды, мастера, организаторы, клубы, вопросы.
+    match /polygons/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /masters/{id}   { allow read: if true; allow write: if isAdmin(); }
+    match /workshops/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /clubs/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /faq/{id}       { allow read: if true; allow write: if isAdmin(); }
+    // Блог (контент для SEO)
+    match /blog/{id}      { allow read: if true; allow write: if isAdmin(); }
+    // Рекламные баннеры
+    match /banners/{id}   { allow read: if true; allow write: if isAdmin(); }
+    // Тарифы барахолки (роли пользователей)
+    match /roles/{id}     { allow read: if true; allow write: if isAdmin(); }
+
+    // Отзывы об играх и справочниках. Один документ на пользователя-объект,
+    // id = "{gameId}_{userId}". Пишут пользователи, удаляет админ.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.gameId is string
+                            && request.resource.data.author is string
+                            && request.resource.data.author.size() <= 60
+                            && request.resource.data.stars is int
+                            && request.resource.data.stars >= 1
+                            && request.resource.data.stars <= 5
+                            && (!('text' in request.resource.data)
+                                || (request.resource.data.text is string
+                                    && request.resource.data.text.size() <= 2000));
+      allow delete: if isAdmin();
+    }
+    // Участие в играх: «Пойду / Думаю / Не пойду».
+    // Один документ на пользователя-игру, id = "{gameId}_{userId}".
+    // Удаление — снятие своей отметки на сайте (владельца пока не проверить).
+    match /rsvps/{rsvpId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.status in ['going', 'maybe', 'declined']
+                            && request.resource.data.gameId is string
+                            && request.resource.data.name is string
+                            && request.resource.data.name.size() <= 60;
+      allow delete: if true;
+    }
+    // Push-токены мобильного приложения. Клиент только пишет свой токен;
+    // читает и рассылает Cloud Function (admin SDK, минует правила).
+    match /pushTokens/{id} { allow read: if false; allow write: if true; }
+    // Оценки справочников. Один документ на пользователя-объект,
+    // id = "{targetId}_{userId}".
+    match /ratings/{id} {
+      allow read: if true;
+      allow create, update: if request.resource.data.stars is int
+                            && request.resource.data.stars >= 1
+                            && request.resource.data.stars <= 5
+                            && request.resource.data.targetId is string;
+      allow delete: if isAdmin();
+    }
+    // Жалобы на объявления (модерация). Один документ на жалобщика-объявление,
+    // id = "{marketId}_{reporterId}". Читает и снимает админ.
+    match /reports/{id} {
+      allow read, delete: if isAdmin();
+      allow create, update: if request.resource.data.marketId is string
+                            && request.resource.data.title is string;
+    }
+    // Барахолка: привязка к ВК, лимит 3/мес контролируется на клиенте.
+    // Менять и удалять объявление может автор (на клиенте) или админ;
+    // перепривязать объявление к другому vkId нельзя.
+    match /market/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.title is string
+                    && request.resource.data.title.size() <= 120
+                    && request.resource.data.vkId is string;
+      allow update: if isAdmin()
+                    || request.resource.data.vkId == resource.data.vkId;
+      allow delete: if true;
+    }
+  }
+}

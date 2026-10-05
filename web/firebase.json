@@ -1,0 +1,37 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/robots.txt", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/sitemap.xml", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/blog", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/blog/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/games", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/game/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/orgs", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/clubs", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/masters", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/org/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/club/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/master/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "/m/**", "function": { "functionId": "seo", "region": "us-central1" } },
+      { "source": "**", "destination": "/index.html" }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs22"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

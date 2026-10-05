@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Чтение — всем. Запись картинок — всем (нужно для барахолки, где
+    // объявления публикуют обычные пользователи без входа), но только
+    // изображения и до 3 МБ, чтобы ограничить злоупотребления.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.resource.size < 3 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+  }
+}
