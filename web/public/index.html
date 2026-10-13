@@ -2611,71 +2611,6 @@
       display: flex; align-items: center; gap: 8px;
     }
 
-
-    /* ── ПОЛИРОВКА: календарь с названиями игр, единая панель вкладок, читаемый текст ── */
-    .day-games { display: none; }
-    .calendar-day:not(.has-game) { cursor: default; }
-
-    /* Длинные тексты (описания игр и объявлений) — обычным шрифтом, моно оставляем для меток */
-    .game-description, .detail-row span {
-      font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.55;
-    }
-
-    @media (min-width: 768px) {
-      .calendar-grid { gap: 6px; }
-      .calendar-day {
-        aspect-ratio: auto;
-        min-height: 104px;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 6px;
-        padding: 9px;
-      }
-      .calendar-day.other-month { background: transparent; border-color: transparent; }
-      .day-number { font-size: 15px; align-self: flex-start; color: var(--text-dim); }
-      .calendar-day.has-game .day-number, .calendar-day.today .day-number { color: var(--sand); }
-      .calendar-day:not(.has-game):hover { transform: none; box-shadow: none; border-color: transparent; }
-      .calendar-day.today:hover { border-color: var(--olive-lt); }
-
-      .day-games { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-      .day-game {
-        font-family: 'Oswald', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        text-transform: uppercase;
-        color: var(--sand);
-        background: rgba(0,0,0,0.3);
-        border-left: 2px solid #f6c500;
-        border-radius: 3px;
-        padding: 3px 7px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .day-game-more { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--olive-lt); padding-left: 2px; }
-
-      /* Вкладки — одна панель вместо десяти отдельных кнопок */
-      .desktop-tabs {
-        background: linear-gradient(180deg, rgba(46,51,40,0.85), rgba(37,41,32,0.85));
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 6px;
-        gap: 4px;
-        box-shadow: var(--shadow-md);
-      }
-      .tabs-row { gap: 4px; }
-      .desktop-tabs .tab-btn { background: transparent; border-color: transparent; box-shadow: none; }
-      .desktop-tabs .tab-btn:hover { background: rgba(143,164,79,0.08); border-color: transparent; color: var(--sand); }
-      .desktop-tabs .tab-btn.active {
-        background: linear-gradient(135deg, var(--olive-lt), var(--olive));
-        border-color: var(--olive-lt);
-        color: #1c1f18;
-        box-shadow: 0 6px 18px -6px var(--glow), inset 0 1px 0 rgba(255,255,255,0.18);
-      }
-    }
   </style>
 </head>
 <body>
@@ -4369,24 +4304,7 @@
         }
         const n = document.createElement('div');
         n.className = 'day-number'; n.textContent = day;
-        cell.appendChild(n);
-        // Названия игр прямо в ячейке (видны на широком экране, см. .day-games)
-        if (gamesOnDay.length > 0) {
-          const list = document.createElement('div');
-          list.className = 'day-games';
-          gamesOnDay.slice(0, 2).forEach(g => {
-            const t = document.createElement('div');
-            t.className = 'day-game'; t.textContent = g.title || 'Игра';
-            list.appendChild(t);
-          });
-          if (gamesOnDay.length > 2) {
-            const more = document.createElement('div');
-            more.className = 'day-game-more'; more.textContent = '+' + (gamesOnDay.length - 2);
-            list.appendChild(more);
-          }
-          cell.appendChild(list);
-        }
-        grid.appendChild(cell);
+        cell.appendChild(n); grid.appendChild(cell);
       }
     }
 
