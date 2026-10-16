@@ -38,7 +38,14 @@ export const MARKET_CATS = [
   { key: 'magazin', name: 'Магазины', icon: 'albums' },
   { key: 'zashchita', name: 'Защита', icon: 'shield' },
   { key: 'ekip', name: 'Экип', icon: 'shirt' },
-  { key: 'piro', name: 'Пиротехника', icon: 'flame' },
   { key: 'drugoe', name: 'Другое', icon: 'cube' },
 ];
+// Пиротехника в приложении не показывается (правила App Store / Google Play о
+// взрывчатых веществах); на сайте и в мини-аппе ВК категория остаётся.
+const HIDDEN_CAT = 'piro';
+const HIDDEN_WORDS = /пиротехн|петард|взрывпакет|взрыв-пакет/i;
+export function isHiddenMarketItem(m) {
+  return m.category === HIDDEN_CAT || HIDDEN_WORDS.test(String(m.title || ''));
+}
+
 export function marketCatName(k) { const c = MARKET_CATS.find(x => x.key === k); return c ? c.name : ''; }

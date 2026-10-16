@@ -1056,6 +1056,8 @@ exports.postMarketToVk = onDocumentCreated(
 exports.notifyNewMarket = onDocumentCreated({ document: 'market/{id}', region: 'us-central1' }, async (event) => {
   const m = event.data && event.data.data();
   if (!m || !m.title) return;
+  // Пуши получает только мобильное приложение, а пиротехника в нём скрыта.
+  if (m.category === 'piro' || /пиротехн|петард|взрывпакет|взрыв-пакет/i.test(m.title)) return;
   const id = event.params.id;
   if (isQuietHours()) {
     try { await event.data.ref.update({ pushPending: true }); } catch (e) { console.error('mark pending', e); }
