@@ -8,6 +8,7 @@ import { getUser, setVkUser, setAppleUser, isLinked } from '../identity';
 import { loginWithVk } from '../vkAuth';
 import { loginWithApple, appleAvailable } from '../appleAuth';
 import { vkidConfigured } from '../vkid.config';
+import { splashDone } from './LoadingSplash';
 
 const KEY = 'login_prompt_shown';
 
@@ -21,6 +22,7 @@ export default function LoginPromptModal() {
     (async () => {
       try {
         if (!vkidConfigured()) return;                       // ВК-вход не настроен — не предлагаем
+        await splashDone;                                    // не поверх заставки
         const seenWelcome = await AsyncStorage.getItem('seen_welcome');
         if (!seenWelcome) return;                            // не мешаем онбордингу на 1-м запуске
         if (await AsyncStorage.getItem(KEY)) return;         // уже предлагали
