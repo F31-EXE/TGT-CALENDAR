@@ -191,7 +191,8 @@ function textToSegments(val) {
 }
 
 export function blogExcerpt(a) {
-  const t = String(a.body || '').replace(/<[^>]+>/g, ' ').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  const t = decodeEntities(String(a.body || '').replace(/<[^>]+>/g, ' '))
+    .replace(/https?:\/\/\S+/g, '').replace(/\(\s*\)/g, '').replace(/\s+/g, ' ').trim();
   return t.length > 140 ? t.slice(0, 140) + '…' : t;
 }
 
