@@ -74,5 +74,7 @@ export async function loginWithVk() {
   if (!userId) return { ok: false, reason: 'no_user' };
   const name = [u.first_name, u.last_name].filter(Boolean).join(' ').trim() || 'Боец';
   const avatar = u.avatar || u.photo_200 || '';
-  return { ok: true, profile: { userId, name, avatar } };
+  // accessToken не сохраняем — он нужен только сразу, например чтобы
+  // подтвердить удаление аккаунта на сервере.
+  return { ok: true, profile: { userId, name, avatar, accessToken: tok.access_token, clientId: VKID.clientId } };
 }

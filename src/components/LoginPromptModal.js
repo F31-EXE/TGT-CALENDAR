@@ -3,8 +3,10 @@ import { Modal, View, Text, Pressable, StyleSheet, Alert, ActivityIndicator } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { C, F } from '../theme';
-import { getUser, setVkUser, isVkUser } from '../identity';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { getUser, setVkUser, setAppleUser, isLinked } from '../identity';
 import { loginWithVk } from '../vkAuth';
+import { loginWithApple, appleAvailable } from '../appleAuth';
 import { vkidConfigured } from '../vkid.config';
 
 const KEY = 'login_prompt_shown';
@@ -12,6 +14,7 @@ const KEY = 'login_prompt_shown';
 export default function LoginPromptModal() {
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [hasApple, setHasApple] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -22,7 +25,8 @@ export default function LoginPromptModal() {
         if (!seenWelcome) return;                            // не мешаем онбордингу на 1-м запуске
         if (await AsyncStorage.getItem(KEY)) return;         // уже предлагали
         const u = await getUser();
-        if (isVkUser(u)) return;                             // уже вошёл через ВК
+        if (isLinked(u)) return;                             // уже вошёл через ВК/Apple
+        setHasApple(await appleAvailable());
         setTimeout(() => { if (alive) setShow(true); }, 900);
       } catch (e) {}
     })();
@@ -41,6 +45,12 @@ export default function LoginPromptModal() {
     else if (r.reason !== 'cancel') Alert.alert('Вход через ВК', 'Не получилось войти. Попробуйте позже в профиле.');
   };
 
+  const onApple = async () => {
+    const r = await loginWithApple();
+    if (r.ok) { await setAppleUser(r.profile); close(); }
+    else if (r.reason !== 'cancel') Alert.alert('Вход через Apple', 'Не получилось войти. Попробуйте позже в профиле.');
+  };
+
   if (!show) return null;
 
   return (
@@ -48,8 +58,17 @@ export default function LoginPromptModal() {
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <View style={styles.badge}><Ionicons name="logo-vk" size={30} color="#4a76a8" /></View>
-          <Text style={styles.title}>Войти через ВКонтакте</Text>
+          <Text style={styles.title}>{hasApple ? 'Войти в профиль' : 'Войти через ВКонтакте'}</Text>
           <Text style={styles.text}>Подтянем имя и аватар, а отметки «Пойду» и отзывы станут общими с сайтом и мини-аппом. Можно и без входа.</Text>
+          {hasApple && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+              cornerRadius={10}
+              style={styles.apple}
+              onPress={onApple}
+            />
+          )}
           <Pressable style={[styles.btn, styles.primary, busy && { opacity: 0.6 }]} onPress={onLogin} disabled={busy}>
             {busy ? <ActivityIndicator size="small" color={C.white} /> : <Ionicons name="logo-vk" size={17} color={C.white} />}
             <Text style={styles.primaryText}>Войти через ВК</Text>
@@ -70,6 +89,7 @@ const styles = StyleSheet.create({
   title: { color: C.sand, fontSize: 19, fontFamily: F.title, textTransform: 'uppercase', textAlign: 'center' },
   text: { color: C.text, fontSize: 14, fontFamily: F.mono, textAlign: 'center', lineHeight: 20, marginTop: 12 },
   btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 10, paddingVertical: 13, width: '100%', marginTop: 16 },
+  apple: { width: '100%', height: 48, marginTop: 16 },
   primary: { backgroundColor: '#4a76a8' },
   primaryText: { color: C.white, fontFamily: F.h, fontSize: 15, textTransform: 'uppercase', letterSpacing: 0.5 },
   ghost: { paddingVertical: 10, marginTop: 4 },

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, Image, Pressable, StyleSheet, RefreshControl, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { C, F, MARKET_CATS, marketCatName } from '../theme';
-import { loadMarket, priceLabel, parsePhotos } from '../api';
+import { loadMarket, priceLabel, parsePhotos, marketAuthorId } from '../api';
+import { isBlocked, subscribeBlocks } from '../blocks';
 import { isFav, toggleFav, subscribeFavs } from '../favorites';
 import { Loading, Empty, ErrorState, Badge } from '../ui';
 
@@ -60,6 +61,7 @@ export default function MarketScreen({ navigation }) {
   }, []);
   useEffect(() => { fetch(); }, [fetch]);
   useEffect(() => subscribeFavs(() => bump(v => v + 1)), []);
+  useEffect(() => subscribeBlocks(() => bump(v => v + 1)), []);
   const onRefresh = async () => { setRefreshing(true); await fetch(); setRefreshing(false); };
 
   if (state.loading) return <Loading />;
@@ -67,6 +69,7 @@ export default function MarketScreen({ navigation }) {
 
   const query = q.trim().toLowerCase();
   let items = state.items.filter(m => {
+    if (isBlocked(marketAuthorId(m))) return false;
     if (favOnly && !isFav(m.id)) return false;
     if (cat && (m.category || '') !== cat) return false;
     if (shipOnly && !m.shipping) return false;

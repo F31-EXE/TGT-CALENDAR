@@ -1,0 +1,14 @@
+{
+  "name": "grimteam-seo-functions",
+  "description": "Server-side rendering of blog articles for Yandex/Google indexing",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0",
+    "sanitize-html": "^2.17.6"
+  },
+  "private": true
+}

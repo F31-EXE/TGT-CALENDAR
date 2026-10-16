@@ -1,12 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Image, ScrollView, Pressable, StyleSheet, Share, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { C, F } from '../theme';
 import { evaluateAchievements } from '../achievements';
 import { SITE_ORIGIN } from '../api';
-import { setUserName, getTeam, setTeam, getUser, setVkUser, logout, isVkUser } from '../identity';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import { setUserName, getTeam, setTeam, getUser, setVkUser, setAppleUser, logout, isVkUser, isAppleUser, isLinked } from '../identity';
 import { loginWithVk } from '../vkAuth';
+import { loginWithApple, appleAvailable } from '../appleAuth';
+import { deleteMyAccount } from '../account';
 import { Loading } from '../ui';
 import NameModal from '../components/NameModal';
 
@@ -27,6 +30,10 @@ export default function ProfileScreen() {
   const [team, setTeamState] = useState('');
   const [account, setAccount] = useState(null);
   const [vkBusy, setVkBusy] = useState(false);
+  const [hasApple, setHasApple] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => { appleAvailable().then(setHasApple); }, []);
 
   const load = useCallback(async () => {
     try { setData(await evaluateAchievements()); } catch (e) { setData(null); }
@@ -46,8 +53,32 @@ export default function ProfileScreen() {
     if (r.ok) { await setVkUser(r.profile); load(); }
     else Alert.alert('Вход через ВК', VK_ERRORS[r.reason] || ('Не получилось: ' + r.reason));
   };
+  const onAppleLogin = async () => {
+    const r = await loginWithApple();
+    if (r.ok) { await setAppleUser(r.profile); load(); }
+    else if (r.reason !== 'cancel') Alert.alert('Вход через Apple', 'Не получилось войти. Попробуйте ещё раз.');
+  };
+  const onDeleteAccount = () => {
+    const how = isVkUser(account) ? ' Для подтверждения войдите через ВК ещё раз.'
+      : isAppleUser(account) ? ' Для подтверждения войдите через Apple ещё раз.' : '';
+    Alert.alert(
+      'Удалить аккаунт?',
+      'Удалятся ваши отметки на играх, отзывы, оценки, объявления и жалобы, а также все данные на этом устройстве. Отменить нельзя.' + how,
+      [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Удалить', style: 'destructive', onPress: async () => {
+          setDeleting(true);
+          const r = await deleteMyAccount();
+          setDeleting(false);
+          if (r.ok) { Alert.alert('Аккаунт удалён', 'Ваши данные удалены.'); load(); }
+          else if (r.reason === 'mismatch') Alert.alert('Не тот аккаунт', 'Вход выполнен в другой аккаунт. Данные не удалены.');
+          else if (r.reason !== 'cancel') Alert.alert('Не получилось', 'Не удалось удалить данные. Проверьте интернет и попробуйте ещё раз.');
+        } },
+      ]
+    );
+  };
   const onVkLogout = () => {
-    Alert.alert('Выйти из ВК?', 'Профиль отвяжется, останется локальное имя.', [
+    Alert.alert(isAppleUser(account) ? 'Выйти из Apple ID?' : 'Выйти из ВК?', 'Профиль отвяжется, останется локальное имя.', [
       { text: 'Отмена', style: 'cancel' },
       { text: 'Выйти', style: 'destructive', onPress: async () => { await logout(); load(); } },
     ]);
@@ -129,20 +160,32 @@ export default function ProfileScreen() {
         <Text style={styles.shareText}>Поделиться в ВК</Text>
       </Pressable>
 
-      {isVkUser(account) ? (
+      {isLinked(account) ? (
         <View style={styles.vkCard}>
-          {account.avatar ? <Image source={{ uri: account.avatar }} style={styles.vkAvatar} /> : <Ionicons name="logo-vk" size={30} color="#4a76a8" />}
+          {account.avatar ? <Image source={{ uri: account.avatar }} style={styles.vkAvatar} />
+            : <Ionicons name={isAppleUser(account) ? 'logo-apple' : 'logo-vk'} size={30} color={isAppleUser(account) ? C.sand : '#4a76a8'} />}
           <View style={{ flex: 1 }}>
             <Text style={styles.vkName} numberOfLines={1}>{account.name}</Text>
-            <Text style={styles.vkNote}>Вход через ВКонтакте</Text>
+            <Text style={[styles.vkNote, isAppleUser(account) && { color: C.textDim }]}>{isAppleUser(account) ? 'Вход через Apple' : 'Вход через ВКонтакте'}</Text>
           </View>
           <Pressable hitSlop={8} onPress={onVkLogout}><Text style={styles.vkLogout}>Выйти</Text></Pressable>
         </View>
       ) : (
-        <Pressable style={[styles.vkBtn, vkBusy && { opacity: 0.6 }]} onPress={onVkLogin} disabled={vkBusy}>
-          {vkBusy ? <ActivityIndicator size="small" color={C.white} /> : <Ionicons name="logo-vk" size={18} color={C.white} />}
-          <Text style={styles.vkBtnText}>Войти через ВК</Text>
-        </Pressable>
+        <>
+          {hasApple && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+              cornerRadius={10}
+              style={styles.appleBtn}
+              onPress={onAppleLogin}
+            />
+          )}
+          <Pressable style={[styles.vkBtn, vkBusy && { opacity: 0.6 }]} onPress={onVkLogin} disabled={vkBusy}>
+            {vkBusy ? <ActivityIndicator size="small" color={C.white} /> : <Ionicons name="logo-vk" size={18} color={C.white} />}
+            <Text style={styles.vkBtnText}>Войти через ВК</Text>
+          </Pressable>
+        </>
       )}
 
       {!data.hasUser && (
@@ -151,6 +194,11 @@ export default function ProfileScreen() {
           <Text style={styles.noteText}>Задайте имя и отмечайтесь на играх («Пойду») — так копятся опыт, звания и награды.</Text>
         </View>
       )}
+
+      <Pressable style={styles.deleteRow} onPress={onDeleteAccount} disabled={deleting}>
+        {deleting ? <ActivityIndicator size="small" color={C.danger} /> : <Ionicons name="trash-outline" size={15} color={C.danger} />}
+        <Text style={styles.deleteText}>Удалить аккаунт и данные</Text>
+      </Pressable>
 
       <NameModal visible={nameModal} initial={userName || ''} onCancel={() => setNameModal(false)} onSubmit={onNameSubmit} />
       <NameModal
@@ -214,6 +262,9 @@ const styles = StyleSheet.create({
   shareText: { color: C.white, fontFamily: F.h, fontSize: 15, textTransform: 'uppercase', letterSpacing: 0.5 },
   vkBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#4a76a8', borderRadius: 10, paddingVertical: 14, marginTop: 10 },
   vkBtnText: { color: C.white, fontFamily: F.h, fontSize: 15, textTransform: 'uppercase', letterSpacing: 0.5 },
+  appleBtn: { height: 48, marginTop: 10 },
+  deleteRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 28, paddingVertical: 10 },
+  deleteText: { color: C.danger, fontSize: 13, fontFamily: F.mono },
   vkCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface, borderRadius: 12, borderWidth: 1, borderColor: C.border, padding: 12, marginTop: 10 },
   vkAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.bg2 },
   vkName: { color: C.sand, fontSize: 15, fontFamily: F.h, textTransform: 'uppercase' },
