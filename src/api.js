@@ -1,6 +1,6 @@
 import { getCollection, setDoc } from './firestore';
 import { getUser } from './identity';
-import { EKB_TZ } from './theme';
+import { EKB_TZ, isHiddenMarketItem } from './theme';
 
 // Жалоба на объявление барахолки (модерация). Пишем в коллекцию reports —
 // один документ на жалобщика-объявление, как на сайте.
@@ -80,6 +80,7 @@ export async function loadMarket() {
   const cutoff = Date.now() - EXPIRE_DAYS * 86400000;
   return items
     .filter(m => !m.createdAt || new Date(m.createdAt).getTime() >= cutoff)
+    .filter(m => !isHiddenMarketItem(m))
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 }
 

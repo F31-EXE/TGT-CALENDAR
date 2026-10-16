@@ -25,11 +25,11 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
@@ -39,6 +39,21 @@ jobs:
         run: |
           if [ -z "$SA" ]; then echo "::error::Нет секрета FIREBASE_SERVICE_ACCOUNT"; exit 1; fi
           printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          # Проверяем, что это именно JSON-ключ сервисного аккаунта (а не конфиг веб-приложения и т.п.)
+          python3 - "$RUNNER_TEMP/sa.json" <<'PY'
+          import json, sys
+          try:
+              k = json.load(open(sys.argv[1]))
+          except Exception as e:
+              sys.exit(f"::error::FIREBASE_SERVICE_ACCOUNT — не JSON ({e}). Вставьте содержимое скачанного .json-файла целиком.")
+          missing = [f for f in ('type', 'client_email', 'private_key', 'project_id') if not k.get(f)]
+          if k.get('type') != 'service_account' or missing:
+              sys.exit("::error::FIREBASE_SERVICE_ACCOUNT — не ключ сервисного аккаунта "
+                       f"(type={k.get('type')!r}, нет полей: {missing}). Нужен файл из IAM → Service Accounts → Ключи → JSON.")
+          print('Сервисный аккаунт:', k['client_email'], '| проект:', k['project_id'])
+          if k['project_id'] != 'strikeball-calendar':
+              print(f"::warning::Ключ от проекта {k['project_id']}, а деплой идёт в strikeball-calendar")
+          PY
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
 
       - name: Что выкладывать

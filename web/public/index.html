@@ -2696,6 +2696,9 @@
     .weather-note { color: var(--text-dim); font-size: 11px; margin-top: 6px; }
     .weather-far { color: var(--text-dim); }
     .weather-far i { color: var(--olive-lt); margin-right: 6px; }
+
+    /* Платные функции скрыты, пока не включён SHOW_PAID (класс body.paid-on) */
+    body:not(.paid-on) .paid-only { display: none !important; }
   </style>
 </head>
 <body>
@@ -2736,7 +2739,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="hbtn ad-link" onclick="openAdModal()"><i class="fas fa-bullhorn"></i><span>Реклама</span></button>
+        <button class="hbtn ad-link paid-only" onclick="openAdModal()"><i class="fas fa-bullhorn"></i><span>Реклама</span></button>
         <a href="https://thegrimteam.ru/" target="_blank" class="hbtn site-link"><i class="fas fa-globe"></i><span>Сайт</span></a>
         <a href="https://vk.com/tgt_ekb" target="_blank" class="hbtn vk-link"><i class="fab fa-vk"></i><span>ВК</span></a>
       </div>
@@ -3555,6 +3558,10 @@
 
     // Firebase REST API — работает везде включая VK WebView
     const FIREBASE_PROJECT = 'strikeball-calendar';
+    // Платные функции (реклама, тарифы барахолки) скрыты. Вернуть — поставить true.
+    const SHOW_PAID = false;
+    if (SHOW_PAID) document.body.classList.add('paid-on');
+
     const FIREBASE_API_KEY = 'AIzaSyCOxctw-8lcvkg9nb8gin4npQ-YWDgsaog';
     const FIREBASE_AUTH_URL = 'https://identitytoolkit.googleapis.com/v1/accounts';
     const FIREBASE_BASE = 'https://firestore.googleapis.com/v1/projects/' + FIREBASE_PROJECT + '/databases/(default)/documents';
@@ -6236,7 +6243,8 @@ function formatGameDate(game) {
       if (!user.profile) { showToast('Барахолка доступна только через ВКонтакте', 'error'); return; }
       const lim = getUserLimit(user.id);
       if (marketActiveCount(user.id) >= lim) {
-        showToast('Лимит ' + limitLabel(lim) + ' объявлений исчерпан (тариф «' + getUserTierName(user.id) + '»)', 'error'); return;
+        showToast('Лимит ' + limitLabel(lim) + ' объявлений исчерпан'
+          + (SHOW_PAID ? ' (тариф «' + getUserTierName(user.id) + '»)' : ' — удалите старое объявление или дождитесь следующего месяца'), 'error'); return;
       }
       document.getElementById('marketId').value = '';
       document.getElementById('marketTitle').value = '';
@@ -6869,7 +6877,7 @@ function formatGameDate(game) {
     };
 
     // ── Модалка «Реклама» (тарифы) ──
-    window.openAdModal = function() { document.getElementById('adModal').classList.add('active'); };
+    window.openAdModal = function() { if (SHOW_PAID) document.getElementById('adModal').classList.add('active'); };
     window.closeAdModal = function() { document.getElementById('adModal').classList.remove('active'); };
 
     // ── Админ: тарифы/роли барахолки (постоянные) ──

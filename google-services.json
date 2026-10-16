@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "810169604922",
+    "project_id": "strikeball-calendar",
+    "storage_bucket": "strikeball-calendar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810169604922:android:6ec68b9556360dbd460e03",
+        "android_client_info": {
+          "package_name": "ru.thegrimteam.calendar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuBD_TrAgbvCqJLSmkUzC6qkL9MMvWFnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

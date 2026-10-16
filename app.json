@@ -28,7 +28,8 @@
         "backgroundColor": "#191c13",
         "foregroundImage": "./assets/adaptive-icon.png"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       [
