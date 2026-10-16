@@ -1,0 +1,66 @@
+# Выкладка сайта и бэкенда Firebase после слияния в main.
+# Нужен секрет репозитория FIREBASE_SERVICE_ACCOUNT — JSON-ключ сервисного
+# аккаунта проекта strikeball-calendar (см. README, раздел «Автоматизация»).
+name: Deploy web (Firebase)
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/web-deploy.yml']
+  workflow_dispatch:
+    inputs:
+      functions:
+        description: 'Выложить и Cloud Functions'
+        type: boolean
+        default: false
+
+concurrency:
+  group: firebase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ключ сервисного аккаунта
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$SA" ]; then echo "::error::Нет секрета FIREBASE_SERVICE_ACCOUNT"; exit 1; fi
+          printf '%s' "$SA" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+
+      - name: Что выкладывать
+        id: scope
+        run: |
+          targets="hosting,firestore:rules,storage"
+          before="${{ github.event.before }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            [ "${{ inputs.functions }}" = "true" ] && targets="$targets,functions"
+          elif [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] \
+               || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+            targets="$targets,functions"   # нет базы для сравнения — выкладываем всё
+          elif git diff --name-only "$before" HEAD | grep -q '^web/functions/'; then
+            targets="$targets,functions"
+          fi
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+          echo "Выкладываем: $targets"
+
+      - name: Зависимости функций
+        if: contains(steps.scope.outputs.targets, 'functions')
+        working-directory: web/functions
+        run: npm ci
+
+      - name: Deploy
+        run: npx --yes firebase-tools@14 deploy --only "${{ steps.scope.outputs.targets }}" --project strikeball-calendar --non-interactive

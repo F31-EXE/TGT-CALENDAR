@@ -1,0 +1,23 @@
+# Проверка мобильного приложения: JS-бандл собирается для Android и iOS.
+name: App check
+
+on:
+  push:
+    paths-ignore: ['web/**']
+  pull_request:
+    paths-ignore: ['web/**']
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Конфиг Expo читается
+        run: npx expo config --json > /dev/null
+      - name: Сборка JS-бандла
+        run: npx expo export --platform android --platform ios --output-dir dist
