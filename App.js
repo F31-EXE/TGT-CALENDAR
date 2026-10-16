@@ -33,6 +33,7 @@ import ChecklistScreen from './src/screens/ChecklistScreen';
 import AchievementUnlockToast from './src/components/AchievementUnlockToast';
 import WelcomeModal from './src/components/WelcomeModal';
 import LoginPromptModal from './src/components/LoginPromptModal';
+import LoadingSplash from './src/components/LoadingSplash';
 import { recordDay } from './src/achievements';
 import { loadFavs } from './src/favorites';
 import { loadBlocks } from './src/blocks';
@@ -187,6 +188,7 @@ export default function App() {
       <AchievementUnlockToast />
       <WelcomeModal onOpenGuide={() => { if (navRef.isReady()) navRef.navigate('Ещё', { screen: 'Guide' }); }} />
       <LoginPromptModal />
+      <LoadingSplash />
     </SafeAreaProvider>
   );
 }

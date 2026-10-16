@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { splashDone } from './LoadingSplash';
 import { Ionicons } from '@expo/vector-icons';
 import { C, F } from '../theme';
 
@@ -10,7 +11,7 @@ export default function WelcomeModal({ onOpenGuide }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY).then(v => { if (!v) setShow(true); }).catch(() => {});
+    splashDone.then(() => AsyncStorage.getItem(KEY)).then(v => { if (!v) setShow(true); }).catch(() => {});
   }, []);
 
   const dismiss = () => {

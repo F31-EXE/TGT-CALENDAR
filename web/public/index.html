@@ -14,7 +14,7 @@
   <meta property="og:image" content="logo.png">
   <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="preload" as="image" href="splash.webp">
+  <link rel="preload" as="image" href="logo-splash.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   
   <!-- Firebase compat (глобальные переменные) -->
@@ -2615,31 +2615,16 @@
 
     /* ── ЗАСТАВКА ПРИ ЗАГРУЗКЕ ── */
     .splash {
-      position: fixed; inset: 0; z-index: 10000; overflow: hidden;
-      background: #10120d; display: flex; align-items: flex-end; justify-content: center;
-      transition: opacity 0.6s ease, visibility 0.6s;
+      position: fixed; inset: 0; z-index: 10000;
+      background: #191c13; display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
     .splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-    .splash-img {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; object-position: 60% 50%;
-      animation: splashZoom 6s ease-out both;
-    }
-    .splash::after {
-      content: ''; position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse at 60% 45%, transparent 35%, rgba(8,10,6,0.55) 100%),
-        linear-gradient(180deg, rgba(8,10,6,0.25) 0%, rgba(8,10,6,0) 35%, rgba(8,10,6,0.9) 100%);
-    }
     .splash-body {
-      position: relative; z-index: 1; width: 100%; max-width: 520px;
-      padding: 0 24px calc(48px + env(safe-area-inset-bottom)); text-align: center;
-      animation: splashUp 0.8s 0.2s cubic-bezier(.2,.8,.2,1) both;
+      text-align: center; padding: 0 24px;
+      animation: splashUp 0.6s 0.1s cubic-bezier(.2,.8,.2,1) both;
     }
-    .splash-logo {
-      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; display: block;
-      border: 2px solid var(--olive-lt); box-shadow: 0 0 24px rgba(143,164,79,0.45);
-    }
+    .splash-logo { width: 150px; height: auto; margin: 0 auto 18px; display: block; }
     .splash-title {
       font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px;
       letter-spacing: 3px; color: #fff; text-transform: uppercase;
@@ -2651,7 +2636,7 @@
       color: rgba(255,255,255,0.75); text-transform: uppercase; margin-top: 4px;
     }
     .splash-bar {
-      height: 6px; margin: 22px auto 10px; max-width: 280px; border-radius: 3px; overflow: hidden;
+      height: 8px; margin: 26px auto 12px; width: 220px; max-width: 100%; border-radius: 3px; overflow: hidden;
       background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
     }
     .splash-bar i {
@@ -2665,37 +2650,16 @@
       color: var(--olive-lt); text-transform: uppercase;
     }
     .splash-status::after { content: '_'; animation: splashBlink 1s steps(1) infinite; }
-    @keyframes splashZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes splashUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
     @keyframes splashFill { from { transform: scaleX(0.04); } to { transform: scaleX(1); } }
     @keyframes splashStripes { to { background-position: 22.6px 0; } }
     @keyframes splashBlink { 50% { opacity: 0; } }
     @media (min-width: 768px) {
       .splash-title { font-size: 40px; }
-      .splash-body { padding-bottom: 64px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .splash-img, .splash-body, .splash-bar i, .splash-status::after { animation: none; }
+      .splash-body, .splash-bar i, .splash-status::after { animation: none; }
     }
-
-    /* ── ПОГОДА В КАРТОЧКЕ ИГРЫ ── */
-    .weather-box {
-      background: rgba(0,0,0,0.22); border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px 14px; margin: 4px 0 14px; color: var(--text);
-      font-family: 'Share Tech Mono', monospace; font-size: 13px;
-    }
-    .weather-box > .fa-spinner { color: var(--olive-lt); }
-    .weather-main { display: flex; align-items: center; gap: 12px; }
-    .weather-icon { font-size: 30px; color: var(--sand); width: 36px; text-align: center; }
-    .weather-now { flex: 1; display: flex; flex-direction: column; }
-    .weather-now b { font-family: 'Oswald', sans-serif; font-size: 26px; line-height: 1.1; color: var(--sand); }
-    .weather-range { color: var(--text-dim); font-size: 12px; }
-    .weather-stats { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; }
-    .weather-stats i { color: var(--olive-lt); margin-right: 4px; }
-    .weather-tip { color: var(--olive-lt); font-size: 12px; margin-top: 8px; }
-    .weather-note { color: var(--text-dim); font-size: 11px; margin-top: 6px; }
-    .weather-far { color: var(--text-dim); }
-    .weather-far i { color: var(--olive-lt); margin-right: 6px; }
 
     /* Платные функции скрыты, пока не включён SHOW_PAID (класс body.paid-on) */
     body:not(.paid-on) .paid-only { display: none !important; }
@@ -2704,9 +2668,8 @@
 <body>
   <!-- Заставка, пока подгружаются игры (скрывается в hideSplash) -->
   <div class="splash" id="splash" aria-hidden="true">
-    <img class="splash-img" src="splash.webp" alt="">
     <div class="splash-body">
-      <img class="splash-logo" src="logo.png" alt="">
+      <img class="splash-logo" src="logo-splash.png" alt="">
       <div class="splash-title">THE GRIM <span>TEAM</span></div>
       <div class="splash-sub">Календарь игр</div>
       <div class="splash-bar"><i></i></div>
@@ -4771,7 +4734,6 @@ function formatGameDate(game) {
         </div>
       </div>
       ${game.location?`<div class="detail-row"><i class="fas fa-map-marker-alt"></i><div><strong>Место</strong><span>${linkify(game.location)}</span></div></div>`:''}
-      ${!isPast ? `<div class="weather-box" id="gameWeather" data-game="${id}"><i class="fas fa-spinner fa-spin"></i></div>` : ''}
       ${!isPast ? '</div>' : ''}
       ${game.description?`<div class="detail-row"><i class="fas fa-align-left"></i><div><strong>Описание</strong><span>${linkify(game.description)}</span></div></div>`:''}
     </div>
@@ -4797,95 +4759,7 @@ function formatGameDate(game) {
   const gDesc = game.description ? blogExcerpt(game.description) : (game.title + ' — страйкбольная игра. ' + dateDisplay + (game.location ? ', ' + game.location : ''));
   setMeta(game.title + ' — THE GRIM TEAM', gDesc, SITE_ORIGIN + '/game/' + gameSlugClient(game), game.image || '');
   if (isPast) loadReviews(id);
-  else renderGameWeather(game);
 };
-
-    // ── ПОГОДА НА ВРЕМЯ ИГРЫ (Open-Meteo, без ключа; прогноз на 16 дней) ──
-    const WEATHER_EKB = { lat: 56.8389, lng: 60.6057 };
-    const weatherCache = {};
-    function weatherLabel(c) {
-      if (c === 0) return ['Ясно', 'fa-sun'];
-      if (c === 1 || c === 2) return [c === 1 ? 'Преимущественно ясно' : 'Переменная облачность', 'fa-cloud-sun'];
-      if (c === 3) return ['Пасмурно', 'fa-cloud'];
-      if (c === 45 || c === 48) return ['Туман', 'fa-smog'];
-      if (c >= 51 && c <= 57) return ['Морось', 'fa-cloud-rain'];
-      if (c === 61) return ['Небольшой дождь', 'fa-cloud-rain'];
-      if (c === 63) return ['Дождь', 'fa-cloud-rain'];
-      if (c === 65) return ['Сильный дождь', 'fa-cloud-showers-heavy'];
-      if (c === 66 || c === 67) return ['Ледяной дождь', 'fa-cloud-rain'];
-      if (c >= 71 && c <= 77) return ['Снег', 'fa-snowflake'];
-      if (c >= 80 && c <= 82) return ['Ливень', 'fa-cloud-showers-heavy'];
-      if (c === 85 || c === 86) return ['Снегопад', 'fa-snowflake'];
-      if (c >= 95) return ['Гроза', 'fa-bolt'];
-      return ['', 'fa-cloud'];
-    }
-    function weatherTip(w) {
-      if (w.code >= 95) return 'Гроза — следите за объявлениями организатора';
-      if (w.precipProb >= 60) return 'Вероятен дождь — возьмите дождевик и сменную одежду';
-      if (w.temp <= 0) return 'Мороз — термобельё, перчатки и запасные аккумуляторы в тепле';
-      if (w.temp <= 7) return 'Прохладно — оденьтесь потеплее';
-      if (w.temp >= 27) return 'Жара — возьмите больше воды';
-      if (w.wind >= 10) return 'Сильный ветер — учтите при стрельбе на дистанции';
-      return '';
-    }
-    async function renderGameWeather(game) {
-      const el = document.getElementById('gameWeather'); if (!el) return;
-      const start = new Date(game.startDate || game.date);
-      const now = Date.now();
-      if (isNaN(start) || start.getTime() < now - 3 * 3600000) { el.remove(); return; }
-      if (start.getTime() > now + 15 * 86400000) {
-        el.innerHTML = '<div class="weather-far"><i class="fas fa-cloud-sun"></i> Прогноз погоды появится за 2 недели до игры</div>';
-        return;
-      }
-      const hasPt = typeof game.lat === 'number' && typeof game.lng === 'number' && !isNaN(game.lat) && !isNaN(game.lng);
-      const pt = hasPt ? { lat: game.lat, lng: game.lng } : WEATHER_EKB;
-      const day = start.toLocaleDateString('en-CA', { timeZone: EKB_TZ });
-      let hour = start.toLocaleTimeString('en-GB', { hour: '2-digit', hour12: false, timeZone: EKB_TZ }).slice(0, 2);
-      if (hour === '24') hour = '00';
-      const ck = pt.lat.toFixed(3) + ',' + pt.lng.toFixed(3) + ',' + day;
-      try {
-        let data = weatherCache[ck] && now - weatherCache[ck].at < 1800000 ? weatherCache[ck].data : null;
-        if (!data) {
-          const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + pt.lat + '&longitude=' + pt.lng
-            + '&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m'
-            + '&daily=temperature_2m_max,temperature_2m_min'
-            + '&wind_speed_unit=ms&timezone=' + encodeURIComponent(EKB_TZ) + '&start_date=' + day + '&end_date=' + day;
-          const res = await fetch(url);
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          data = await res.json();
-          weatherCache[ck] = { at: now, data };
-        }
-        const h = data.hourly;
-        let i = h.time.indexOf(day + 'T' + hour + ':00'); if (i < 0) i = 0;
-        const w = {
-          temp: Math.round(h.temperature_2m[i]),
-          precipProb: (h.precipitation_probability && h.precipitation_probability[i]) || 0,
-          wind: Math.round(h.wind_speed_10m[i]),
-          gust: h.wind_gusts_10m ? Math.round(h.wind_gusts_10m[i]) : null,
-          code: h.weather_code[i],
-          tmin: data.daily ? Math.round(data.daily.temperature_2m_min[0]) : null,
-          tmax: data.daily ? Math.round(data.daily.temperature_2m_max[0]) : null,
-        };
-        const cur = document.getElementById('gameWeather');
-        if (!cur || cur.dataset.game !== game.id) return; // окно уже показывает другую игру
-        const [text, icon] = weatherLabel(w.code);
-        const tip = weatherTip(w);
-        cur.innerHTML = `
-          <div class="weather-main">
-            <i class="fas ${icon} weather-icon"></i>
-            <div class="weather-now"><b>${w.temp > 0 ? '+' : ''}${w.temp}°</b><span>${text}</span></div>
-            ${w.tmin != null && w.tmax != null ? `<div class="weather-range">днём ${w.tmin}…${w.tmax}°</div>` : ''}
-          </div>
-          <div class="weather-stats">
-            <span><i class="fas fa-umbrella"></i> Осадки ${w.precipProb}%</span>
-            <span><i class="fas fa-wind"></i> Ветер ${w.wind} м/с${w.gust && w.gust > w.wind + 2 ? ', порывы ' + w.gust : ''}</span>
-          </div>
-          ${tip ? `<div class="weather-tip">${tip}</div>` : ''}
-          <div class="weather-note">${hasPt ? 'Прогноз на начало игры для места проведения' : 'Прогноз на начало игры для Екатеринбурга — координаты полигона не указаны'}</div>`;
-      } catch (e) {
-        const cur = document.getElementById('gameWeather'); if (cur) cur.remove();
-      }
-    }
 
     // Слаг игры для ссылки (совпадает с серверным в functions/index.js)
     function gameSlugClient(g) {

@@ -56,9 +56,14 @@ export async function deleteAccountRemote(userId, proof) {
 }
 
 // ── Игры ──
-export async function loadGames() {
-  const games = await getCollection('games');
-  return games.sort((a, b) => String(a.startDate || a.date || '').localeCompare(String(b.startDate || b.date || '')));
+// Один запрос на всех: заставка и экран игр при старте ждут одну и ту же загрузку.
+let gamesInFlight = null;
+export function loadGames() {
+  if (gamesInFlight) return gamesInFlight;
+  gamesInFlight = getCollection('games')
+    .then(games => games.sort((a, b) => String(a.startDate || a.date || '').localeCompare(String(b.startDate || b.date || ''))))
+    .finally(() => { gamesInFlight = null; });
+  return gamesInFlight;
 }
 export function splitGames(games) {
   const now = new Date();

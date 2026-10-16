@@ -9,7 +9,6 @@ import { getUser, setUserName } from '../identity';
 import { recordFlag, requestAchievementCheck } from '../achievements';
 import NameModal from '../components/NameModal';
 import LinkText from '../components/LinkText';
-import WeatherBlock from '../components/WeatherBlock';
 
 const RSVP_OPTIONS = [
   { key: 'going', label: 'Пойду', icon: 'checkmark-circle' },
@@ -102,7 +101,6 @@ export default function GameDetailScreen({ route }) {
 
         <Row icon="calendar" label="Когда" value={fmtDateTime(game.startDate || game.date) + (game.endDate ? ' (многодневная)' : '')} />
         {!!game.location && <Row icon="location" label="Где" value={game.location} />}
-        {!isPast && <WeatherBlock game={game} />}
 
         {!!game.description && <LinkText text={game.description} style={styles.desc} />}
 
