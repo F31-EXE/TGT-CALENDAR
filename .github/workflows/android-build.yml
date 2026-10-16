@@ -1,0 +1,82 @@
+# Сборка Android без EAS: Actions → «Android build» → Run workflow.
+# Нативный проект генерируется (expo prebuild) и собирается Gradle на сервере
+# GitHub. Готовые APK и AAB — в «Artifacts» внизу страницы запуска.
+#
+# Секреты (тот же ключ подписи, что в EAS — иначе Google Play не примет AAB):
+#   ANDROID_KEYSTORE_BASE64   — файл .jks в base64
+#   ANDROID_KEYSTORE_PASSWORD — пароль хранилища
+#   ANDROID_KEY_ALIAS         — алиас ключа
+#   ANDROID_KEY_PASSWORD      — пароль ключа
+name: Android build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode (пусто = 100 + номер запуска). Должен быть больше, чем у прошлой сборки в Google Play'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: versionCode
+        id: ver
+        run: |
+          code="${{ inputs.version_code }}"
+          [ -z "$code" ] && code=$((100 + ${{ github.run_number }}))
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          node -e "
+            const fs=require('fs');const j=JSON.parse(fs.readFileSync('app.json'));
+            j.expo.android.versionCode=Number(process.argv[1]);
+            fs.writeFileSync('app.json',JSON.stringify(j,null,2));
+            console.log('version', j.expo.version, 'versionCode', j.expo.android.versionCode);" "$code"
+
+      - name: Генерация нативного проекта
+        run: npx expo prebuild -p android --no-install --clean
+
+      - name: Ключ подписи
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE" ]; then echo "::error::Нет секрета ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.jks"
+
+      - name: Gradle — APK и AAB
+        working-directory: android
+        env:
+          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
+            -Pandroid.injected.signing.store.password="$STORE_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tgt-calendar-android-${{ steps.ver.outputs.code }}
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
