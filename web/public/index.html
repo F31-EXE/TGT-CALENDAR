@@ -14,7 +14,7 @@
   <meta property="og:image" content="logo.png">
   <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/png" href="logo.png">
-  <link rel="preload" as="image" href="splash.webp">
+  <link rel="preload" as="image" href="logo-splash.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   
   <!-- Firebase compat (глобальные переменные) -->
@@ -2615,31 +2615,16 @@
 
     /* ── ЗАСТАВКА ПРИ ЗАГРУЗКЕ ── */
     .splash {
-      position: fixed; inset: 0; z-index: 10000; overflow: hidden;
-      background: #10120d; display: flex; align-items: flex-end; justify-content: center;
-      transition: opacity 0.6s ease, visibility 0.6s;
+      position: fixed; inset: 0; z-index: 10000;
+      background: #191c13; display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
     .splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
-    .splash-img {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; object-position: 60% 50%;
-      animation: splashZoom 6s ease-out both;
-    }
-    .splash::after {
-      content: ''; position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse at 60% 45%, transparent 35%, rgba(8,10,6,0.55) 100%),
-        linear-gradient(180deg, rgba(8,10,6,0.25) 0%, rgba(8,10,6,0) 35%, rgba(8,10,6,0.9) 100%);
-    }
     .splash-body {
-      position: relative; z-index: 1; width: 100%; max-width: 520px;
-      padding: 0 24px calc(48px + env(safe-area-inset-bottom)); text-align: center;
-      animation: splashUp 0.8s 0.2s cubic-bezier(.2,.8,.2,1) both;
+      text-align: center; padding: 0 24px;
+      animation: splashUp 0.6s 0.1s cubic-bezier(.2,.8,.2,1) both;
     }
-    .splash-logo {
-      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; display: block;
-      border: 2px solid var(--olive-lt); box-shadow: 0 0 24px rgba(143,164,79,0.45);
-    }
+    .splash-logo { width: 150px; height: auto; margin: 0 auto 18px; display: block; }
     .splash-title {
       font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px;
       letter-spacing: 3px; color: #fff; text-transform: uppercase;
@@ -2651,7 +2636,7 @@
       color: rgba(255,255,255,0.75); text-transform: uppercase; margin-top: 4px;
     }
     .splash-bar {
-      height: 6px; margin: 22px auto 10px; max-width: 280px; border-radius: 3px; overflow: hidden;
+      height: 8px; margin: 26px auto 12px; width: 220px; max-width: 100%; border-radius: 3px; overflow: hidden;
       background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
     }
     .splash-bar i {
@@ -2665,17 +2650,15 @@
       color: var(--olive-lt); text-transform: uppercase;
     }
     .splash-status::after { content: '_'; animation: splashBlink 1s steps(1) infinite; }
-    @keyframes splashZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
     @keyframes splashUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
     @keyframes splashFill { from { transform: scaleX(0.04); } to { transform: scaleX(1); } }
     @keyframes splashStripes { to { background-position: 22.6px 0; } }
     @keyframes splashBlink { 50% { opacity: 0; } }
     @media (min-width: 768px) {
       .splash-title { font-size: 40px; }
-      .splash-body { padding-bottom: 64px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .splash-img, .splash-body, .splash-bar i, .splash-status::after { animation: none; }
+      .splash-body, .splash-bar i, .splash-status::after { animation: none; }
     }
 
     /* Платные функции скрыты, пока не включён SHOW_PAID (класс body.paid-on) */
@@ -2685,9 +2668,8 @@
 <body>
   <!-- Заставка, пока подгружаются игры (скрывается в hideSplash) -->
   <div class="splash" id="splash" aria-hidden="true">
-    <img class="splash-img" src="splash.webp" alt="">
     <div class="splash-body">
-      <img class="splash-logo" src="logo.png" alt="">
+      <img class="splash-logo" src="logo-splash.png" alt="">
       <div class="splash-title">THE GRIM <span>TEAM</span></div>
       <div class="splash-sub">Календарь игр</div>
       <div class="splash-bar"><i></i></div>
