@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Скачать приложение — THE GRIM TEAM</title>
+<meta name="description" content="Приложения THE GRIM TEAM для iPhone и Android: календарь страйкбольных игр Урала и тактическая карта GrimMap.">
+<meta name="theme-color" content="#191c13">
+<link rel="canonical" href="https://airsoft-calendar-tgt.ru/app">
+<link rel="icon" href="/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="THE GRIM TEAM — календарь страйкбола">
+<meta property="og:description" content="Игры, полигоны, клубы и барахолка в одном приложении. iPhone и Android.">
+<meta property="og:image" content="https://airsoft-calendar-tgt.ru/logo.png">
+<meta property="og:url" content="https://airsoft-calendar-tgt.ru/app">
+<style>
+  @import url('https://fonts.bunny.net/css2?family=Oswald:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#191c13;--bg2:#20241a;--surface:#262b1c;--border:#3c4230;
+    --olive:#6b7c3f;--olive-lt:#c9d17a;--khaki:#c8b878;
+    --text:#e7e3d4;--text-dim:#9aa07f;
+  }
+  html,body{min-height:100%}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:Oswald,Impact,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  .hazard{height:8px;background:repeating-linear-gradient(-45deg,var(--khaki) 0 14px,#14160f 14px 28px);opacity:.85}
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px}
+  .card{width:100%;max-width:440px;text-align:center}
+  .logo{width:148px;height:148px;object-fit:contain;display:block;margin:0 auto 22px;filter:drop-shadow(0 6px 24px rgba(0,0,0,.5))}
+  h1{text-transform:uppercase;letter-spacing:2px;font-size:30px;font-weight:700;line-height:1.1}
+  .tag{font-family:'Share Tech Mono',monospace;color:var(--olive-lt);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin:8px 0 18px}
+  .lead{color:#d0ccba;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:16px;line-height:1.55;margin-bottom:28px}
+  .stores{display:flex;flex-direction:column;gap:12px}
+  .store{
+    display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--text);
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:14px 18px;min-height:64px;text-align:left;transition:border-color .15s,transform .15s,background .15s;
+  }
+  .store:hover{border-color:var(--olive);transform:translateY(-1px)}
+  .store:active{transform:translateY(0)}
+  .store svg{width:30px;height:30px;flex-shrink:0;fill:currentColor}
+  .store .t small{display:block;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
+  .store .t b{display:block;font-size:20px;font-weight:600;letter-spacing:.5px}
+  .store.primary{background:var(--olive);border-color:var(--olive)}
+  .store.primary .t small{color:#e4e8c8}
+  .store.soon{opacity:.45;pointer-events:none}
+  .store.soon .t small::after{content:' · скоро'}
+  .app2{display:flex;align-items:center;gap:16px;text-align:left;margin:44px 0 14px;padding-top:32px;border-top:1px solid var(--border)}
+  .logo2{width:72px;height:72px;border-radius:18px;flex-shrink:0;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+  h2{text-transform:uppercase;letter-spacing:2px;font-size:26px;font-weight:700;line-height:1.1}
+  .app2 .tag{margin:6px 0 0}
+  .web{display:inline-block;margin-top:22px;color:var(--olive-lt);font-size:15px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;border-bottom:1px dashed currentColor}
+  footer{border-top:1px solid var(--border);color:#7b8163;font-family:'Share Tech Mono',monospace;font-size:12px;text-align:center;padding:18px 16px}
+  footer a{color:inherit}
+</style>
+</head>
+<body>
+<div class="hazard"></div>
+<main>
+  <div class="card">
+    <img class="logo" src="/logo-splash.png" alt="THE GRIM TEAM">
+    <h1>The Grim Team</h1>
+    <div class="tag">// календарь страйкбола Урала</div>
+    <p class="lead">Все игры, полигоны и клубы в одном месте. Записывайтесь на игры, получайте напоминания и следите за барахолкой.</p>
+
+    <div class="stores" data-app="calendar"></div>
+
+    <section class="app2">
+      <img class="logo2" src="/grimmap-logo.png" alt="GrimMap">
+      <div>
+        <h2>GrimMap</h2>
+        <div class="tag">// тактическая карта для страйкбола</div>
+      </div>
+    </section>
+    <p class="lead">Спутник и карты полигона, позиции отряда в реальном времени, метки, приказы командира, чат и связь без интернета.</p>
+    <div class="stores" data-app="grimmap"></div>
+
+    <a class="web" href="/">Открыть веб-версию →</a>
+  </div>
+</main>
+<footer>© THE GRIM TEAM · <a href="/privacy.html">Конфиденциальность</a> · <a href="/support.html">Поддержка</a></footer>
+
+<script>
+  // Ссылки на магазины. Пустая строка — кнопка показывается как «скоро».
+  var LINKS = {
+    calendar: { ios: '', gplay: '', rustore: '' },
+    grimmap:  { ios: '', gplay: '', rustore: '' }
+  };
+
+  var STORES = {
+    ios:     { pre: 'Загрузите в', name: 'App Store',   icon: '<path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.88-.76-1.48.02-2.85.86-3.61 2.19-1.54 2.67-.39 6.62 1.11 8.79.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.71.71 2.88.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.31-.89-2.32-3.54zM14.2 6.13c.61-.74 1.02-1.76.91-2.78-.88.04-1.94.59-2.57 1.32-.56.65-1.06 1.69-.93 2.69.98.08 1.98-.5 2.59-1.23z"/>' },
+    gplay:   { pre: 'Доступно в',  name: 'Google Play', icon: '<path d="M3.6 2.2c-.23.25-.36.63-.36 1.12v17.36c0 .49.13.87.37 1.11l.06.05L13.4 12.1v-.23L3.66 2.15l-.06.05zM16.66 15.37 13.4 12.1v-.23l3.26-3.26.07.04 3.86 2.19c1.1.63 1.1 1.65 0 2.28l-3.86 2.2-.07.05zM16.73 15.32 13.4 12 3.6 21.8c.36.38.96.43 1.64.05l11.5-6.53M16.73 8.68 5.24 2.15c-.68-.39-1.28-.34-1.64.05L13.4 12l3.33-3.32z"/>' },
+    rustore: { pre: 'Скачайте в',  name: 'RuStore',     icon: '<path d="M4.2 2h15.6A2.2 2.2 0 0 1 22 4.2v15.6a2.2 2.2 0 0 1-2.2 2.2H4.2A2.2 2.2 0 0 1 2 19.8V4.2A2.2 2.2 0 0 1 4.2 2zm4.15 4.6c-.5-.12-.9.2-.9.72v8.12c0 .43.3.8.72.9l2.9.7c.5.12.9-.2.9-.72V8.2c0-.43-.3-.8-.72-.9l-2.9-.7zm4.9 1.2c-.5-.12-.9.2-.9.72v8.12c0 .43.3.8.72.9l2.9.7c.5.12.9-.2.9-.72V9.4c0-.43-.3-.8-.72-.9l-2.9-.7z"/>' }
+  };
+
+  var ua = navigator.userAgent || '';
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(ua);
+  // Магазин своей платформы — первым и выделенным
+  var mine = isIOS ? 'ios' : isAndroid ? 'gplay' : null;
+
+  document.querySelectorAll('.stores').forEach(function (box) {
+    var links = LINKS[box.dataset.app];
+    var order = ['ios', 'gplay', 'rustore'];
+    if (mine && links[mine]) order.sort(function (a, b) { return (b === mine) - (a === mine); });
+    order.forEach(function (id) {
+      var st = STORES[id], a = document.createElement('a');
+      a.className = 'store' + (links[id] ? (id === mine ? ' primary' : '') : ' soon');
+      if (links[id]) { a.href = links[id]; a.target = '_blank'; a.rel = 'noopener'; }
+      a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + st.icon + '</svg>' +
+        '<span class="t"><small>' + st.pre + '</small><b>' + st.name + '</b></span>';
+      box.appendChild(a);
+    });
+  });
+</script>
+</body>
+</html>
